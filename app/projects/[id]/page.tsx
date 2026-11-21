@@ -29,6 +29,7 @@ import {
 import { IssueInvoiceModalWrapper } from '@/components/IssueInvoiceModalWrapper';
 import { LogTimeModal } from '@/components/LogTimeModal';
 import { AddExpenseModal } from '@/components/AddExpenseModal';
+import { ReceivePaymentModal } from '@/components/ReceivePaymentModal';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -66,13 +67,20 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     .leftJoin(invoices, eq(milestones.invoiceId, invoices.id))
     .where(eq(milestones.projectId, project.id));
 
-  // 3. Ambil daftar users berdasarkan organizationId proyek (untuk dropdown staf timesheet)
+  // 3. Ambil daftar invoices milik proyek ini
+  const invoiceList = await db
+    .select()
+    .from(invoices)
+    .where(eq(invoices.projectId, project.id))
+    .orderBy(desc(invoices.createdAt));
+
+  // 4. Ambil daftar users berdasarkan organizationId proyek (untuk dropdown staf timesheet)
   const orgUsers = await db
     .select()
     .from(users)
     .where(eq(users.organizationId, organizationId));
 
-  // 4. Ambil daftar timeEntries milik proyek ini (di-join dengan users)
+  // 5. Ambil daftar timeEntries milik proyek ini (di-join dengan users)
   const timeEntriesList = await db
     .select({
       entry: timeEntries,
@@ -83,7 +91,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     .where(eq(timeEntries.projectId, project.id))
     .orderBy(desc(timeEntries.workDate));
 
-  // 5. Ambil daftar projectExpenses milik proyek ini
+  // 6. Ambil daftar projectExpenses milik proyek ini
   const expensesList = await db
     .select()
     .from(projectExpenses)
@@ -213,10 +221,10 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      {/* DAFTAR TERMIN PEMBAYARAN (MILESTONES) */}
+      {/* 2. DAFTAR TERMIN PEMBAYARAN (MILESTONES) */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">Termin Pembayaran & Penagihan (Milestones)</CardTitle>
+          <CardTitle className="text-xl">Termin Pembayaran &amp; Penagihan (Milestones)</CardTitle>
           <CardDescription>
             Daftar tahapan penagihan proyek. Terbitkan invoice untuk termin yang belum ditagih.
           </CardDescription>
@@ -234,11 +242,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               </TableHeader>
               <TableBody>
                 {milestoneList.length === 0 ? (
-                  <tr>
+                  <TableRow>
                     <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                       Belum ada termin pembayaran untuk proyek ini.
                     </TableCell>
-                  </tr>
+                  </TableRow>
                 ) : (
                   milestoneList.map(({ milestone, invoice }) => {
                     const isBilled = Boolean(milestone.invoiceId);
@@ -295,8 +303,98 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
+      {/* 3. BAGIAN DAFTAR TAGIHAN (INVOICES) - DI BAWAH MILESTONES */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Receipt className="w-5 h-5 text-primary" /> Daftar Tagihan (Invoices)
+          </CardTitle>
+          <CardDescription>
+            Riwayat invoice resmi yang telah diterbitkan untuk proyek ini beserta status pelunasannya.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead className="w-[14%]">Nomor Invoice</TableHead>
+                  <TableHead className="w-[12%]">Tgl Terbit</TableHead>
+                  <TableHead className="w-[12%]">Jatuh Tempo</TableHead>
+                  <TableHead className="w-[13%] text-right">Subtotal</TableHead>
+                  <TableHead className="w-[11%] text-right">PPN (11%)</TableHead>
+                  <TableHead className="w-[11%] text-right">PPh 23 (2%)</TableHead>
+                  <TableHead className="w-[14%] text-right">Tagihan Bersih</TableHead>
+                  <TableHead className="w-[13%] text-center">Status &amp; Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invoiceList.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      Belum ada invoice yang diterbitkan untuk proyek ini.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  invoiceList.map((inv) => {
+                    const isPaid = inv.status === 'PAID';
+                    const isPosted = inv.status === 'POSTED';
+
+                    return (
+                      <TableRow key={inv.id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell className="font-mono font-semibold text-xs text-foreground">
+                          {inv.invoiceNumber}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {inv.issueDate}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {inv.dueDate}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs">
+                          {formatRupiah(inv.subtotal)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                          {formatRupiah(inv.ppnAmount)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                          {formatRupiah(inv.pph23Amount)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-bold text-foreground">
+                          {formatRupiah(inv.netReceivable)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {isPosted ? (
+                            <ReceivePaymentModal
+                              invoiceId={inv.id}
+                              invoiceNumber={inv.invoiceNumber}
+                              netReceivable={Number(inv.netReceivable)}
+                              currentOrgId={organizationId}
+                            />
+                          ) : (
+                            <Badge
+                              className={
+                                isPaid
+                                  ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30'
+                                  : 'bg-amber-500/15 text-amber-600 border-amber-500/30'
+                              }
+                            >
+                              {inv.status === 'POSTED' ? 'Menunggu Bayar' : inv.status}
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* 2. SECTION TIMESHEET (LOG JAM KERJA TIM) */}
+        {/* 4. SECTION TIMESHEET (LOG JAM KERJA TIM) */}
         <Card className="flex flex-col justify-between">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
@@ -327,11 +425,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 </TableHeader>
                 <TableBody>
                   {timeEntriesList.length === 0 ? (
-                    <tr>
+                    <TableRow>
                       <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-xs">
                         Belum ada catatan timesheet.
                       </TableCell>
-                    </tr>
+                    </TableRow>
                   ) : (
                     timeEntriesList.map(({ entry, user }) => {
                       const hours = Number(entry.hours || 0);
@@ -363,7 +461,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        {/* 3. SECTION BIAYA VENDOR & EKSTERNAL */}
+        {/* 5. SECTION BIAYA VENDOR & EKSTERNAL */}
         <Card className="flex flex-col justify-between">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
@@ -392,11 +490,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 </TableHeader>
                 <TableBody>
                   {expensesList.length === 0 ? (
-                    <tr>
+                    <TableRow>
                       <TableCell colSpan={4} className="text-center py-8 text-muted-foreground text-xs">
                         Belum ada biaya vendor tercatat.
                       </TableCell>
-                    </tr>
+                    </TableRow>
                   ) : (
                     expensesList.map((exp) => (
                       <TableRow key={exp.id} className="text-xs">
