@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { organizations, quotations, projects, clients } from '@/db/schema';
-import { eq, desc, and, sum } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import Link from 'next/link';
 import { 
   Building2, 
@@ -8,9 +8,7 @@ import {
   FolderKanban, 
   Wallet, 
   ArrowRight, 
-  CheckCircle2, 
   Clock, 
-  PlusCircle, 
   AlertCircle,
   BookOpen
 } from 'lucide-react';
@@ -19,6 +17,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ApproveQuotationModalClient } from '@/components/ApproveQuotationModalClient';
+import { CreateClientModal } from '@/components/CreateClientModal';
+import { CreateUserModal } from '@/components/CreateUserModal';
+import { CreateQuotationModal } from '@/components/CreateQuotationModal';
 
 // Paksa dynamic agar data dari PostgreSQL selalu real-time setiap kali halaman dimuat
 export const dynamic = 'force-dynamic';
@@ -66,7 +67,14 @@ export default async function AgencyERPDashboard() {
     }).format(num);
   };
 
-  // 2. Ambil semua data quotations yang di-join dengan tabel clients (filter organizationId), urutkan terbaru
+  // 2. Ambil daftar clients berdasarkan organizationId untuk dropdown modal Quotation & lainnya
+  const clientsList = await db
+    .select()
+    .from(clients)
+    .where(eq(clients.organizationId, currentOrgId))
+    .orderBy(desc(clients.createdAt));
+
+  // 3. Ambil semua data quotations yang di-join dengan tabel clients (filter organizationId), urutkan terbaru
   const quotationsList = await db
     .select({
       quotation: quotations,
@@ -77,7 +85,7 @@ export default async function AgencyERPDashboard() {
     .where(eq(quotations.organizationId, currentOrgId))
     .orderBy(desc(quotations.createdAt));
 
-  // 3. Ambil semua data projects yang di-join dengan tabel clients (filter organizationId), urutkan terbaru
+  // 4. Ambil semua data projects yang di-join dengan tabel clients (filter organizationId), urutkan terbaru
   const projectsList = await db
     .select({
       project: projects,
@@ -104,17 +112,7 @@ export default async function AgencyERPDashboard() {
   const activeProjects = projectsList.filter((p) => p.project.status === 'IN_PROGRESS');
   const activeProjectsCount = activeProjects.length;
 
-  // 3. Total Nilai Kontrak Berjalan (dari proyek aktif / IN_PROGRESS yang terhubung ke quotations)
-  // Atau akumulasi total nilai quotation yang berstatus APPROVED / proyek aktif
-  const totalActiveContractValue = projectsList
-    .filter((p) => p.project.status === 'IN_PROGRESS' || p.project.status === 'PLANNING')
-    .reduce((sum, p) => {
-      // Cari quotation terkait jika ada, atau gunakan estimasi/default
-      return sum + 0; // Diisi dari relasi quotation jika ada
-    }, 0);
-
-  // Cara alternatif yang lebih akurat untuk Total Nilai Kontrak Berjalan:
-  // Ambil semua quotation berstatus APPROVED milik organisasi ini
+  // 3. Total Nilai Kontrak Berjalan (dari quotation berstatus APPROVED)
   const approvedQuotations = quotationsList.filter((q) => q.quotation.status === 'APPROVED');
   const totalApprovedContractValue = approvedQuotations.reduce(
     (sum, q) => sum + Number(q.quotation.totalAmount || 0),
@@ -145,16 +143,21 @@ export default async function AgencyERPDashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <p className="text-xs text-muted-foreground hidden md:block">
-              Subjudul: <span className="font-medium text-foreground">Agency ERP Dashboard</span>
-            </p>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
             <Link href="/accounting/journals">
               <Button variant="outline" size="sm" className="gap-2 shadow-sm">
                 <BookOpen className="w-4 h-4 text-primary" />
                 <span>Buku Besar Jurnal</span>
               </Button>
             </Link>
+
+            {/* 3 TOMBOL AKSI BARU BESERTA MODALNYA (Client Components yang mengelola state & reload secara internal) */}
+            <CreateClientModal currentOrgId={currentOrgId} />
+            <CreateUserModal currentOrgId={currentOrgId} />
+            <CreateQuotationModal 
+              currentOrgId={currentOrgId} 
+              clientsList={clientsList} 
+            />
           </div>
         </div>
       </header>
@@ -246,7 +249,7 @@ export default async function AgencyERPDashboard() {
                     <TableHead className="w-[20%]">Nama Klien</TableHead>
                     <TableHead className="w-[12%]">Tipe Billing</TableHead>
                     <TableHead className="w-[15%] text-right">Total Nominal</TableHead>
-                    <TableHead className="w-[13%] text-center">Status & Aksi</TableHead>
+                    <TableHead className="w-[13%] text-center">Status &amp; Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -389,7 +392,7 @@ export default async function AgencyERPDashboard() {
       {/* Footer */}
       <footer className="border-t py-6 text-center text-xs text-muted-foreground bg-muted/20 mt-12">
         <div className="container mx-auto px-4">
-          Agency ERP System &bull; Real-time PostgreSQL Data &bull; Powered by Next.js & Tailwind CSS
+          Agency ERP System &bull; Real-time PostgreSQL Data &bull; Powered by Next.js &amp; Tailwind CSS
         </div>
       </footer>
     </div>
