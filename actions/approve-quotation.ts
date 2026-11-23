@@ -5,6 +5,7 @@ import { quotations, projects, milestones } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { requireRole } from '@/lib/auth';
 
 // ============================================================================
 // 1. VALIDASI INPUT (Mencegah data cacat masuk ke backend)
@@ -36,6 +37,7 @@ export async function approveQuotationAction(
   rawInput: ApproveQuotationInput,
   currentOrgId: string // Diambil dari session user yang sedang login
 ) {
+  await requireRole(['OWNER', 'PM']);
   // Validasi format input dengan Zod
   const parsed = approveQuotationSchema.safeParse(rawInput);
   if (!parsed.success) {

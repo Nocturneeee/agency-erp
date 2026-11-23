@@ -5,6 +5,7 @@ import { timeEntries, projectExpenses, users, projects } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { requireRole } from '@/lib/auth';
 
 // ============================================================================
 // 1. TIMESHEET SERVER ACTION
@@ -21,6 +22,7 @@ const logTimeSchema = z.object({
 export type LogTimeInput = z.infer<typeof logTimeSchema>;
 
 export async function logTimeEntryAction(rawInput: LogTimeInput, currentOrgId: string) {
+  await requireRole(['OWNER', 'PM', 'FINANCE', 'STAFF']);
   const parsed = logTimeSchema.safeParse(rawInput);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
@@ -77,6 +79,7 @@ const expenseSchema = z.object({
 export type ProjectExpenseInput = z.infer<typeof expenseSchema>;
 
 export async function addProjectExpenseAction(rawInput: ProjectExpenseInput, currentOrgId: string) {
+  await requireRole(['OWNER', 'PM', 'FINANCE']);
   const parsed = expenseSchema.safeParse(rawInput);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };

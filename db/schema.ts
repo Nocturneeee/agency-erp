@@ -63,6 +63,7 @@ export const organizations = pgTable('organizations', {
 });
 
 // Tabel Karyawan / Tim Agensi
+// Tabel Karyawan / Tim Agensi
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   organizationId: uuid('organization_id')
@@ -70,6 +71,7 @@ export const users = pgTable('users', {
     .notNull(),
   name: varchar('name', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
+  passwordHash: text('password_hash').default('').notNull(), // <-- TAMBAHKAN DI SINI
   role: userRoleEnum('role').default('STAFF').notNull(),
   // Rate biaya internal perusahaan per jam (untuk menghitung HPP proyek)
   hourlyCostRate: numeric('hourly_cost_rate', { precision: 15, scale: 2 })

@@ -9,6 +9,7 @@ import {
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { requireRole } from '@/lib/auth';
 
 const receivePaymentSchema = z.object({
   invoiceId: z.string().uuid(),
@@ -22,6 +23,7 @@ export async function receivePaymentAction(
   rawInput: ReceivePaymentInput,
   currentOrgId: string
 ) {
+  await requireRole(['OWNER', 'FINANCE']);
   const parsed = receivePaymentSchema.safeParse(rawInput);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };

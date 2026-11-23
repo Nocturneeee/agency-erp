@@ -1,6 +1,8 @@
 import { db } from '@/db';
 import { organizations, quotations, projects, clients } from '@/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
+import { requireUser } from '@/lib/auth';
+import { logoutAction } from '@/actions/auth';
 import Link from 'next/link';
 import { 
   Building2, 
@@ -10,7 +12,9 @@ import {
   ArrowRight, 
   Clock, 
   AlertCircle,
-  BookOpen
+  BookOpen,
+  LogOut,
+  User as UserIcon
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,37 +29,17 @@ import { CreateQuotationModal } from '@/components/CreateQuotationModal';
 export const dynamic = 'force-dynamic';
 
 export default async function AgencyERPDashboard() {
-  // 1. Ambil 1 data pertama dari tabel organizations sebagai organisasi aktif
-  const orgList = await db.select().from(organizations).limit(1);
-  const activeOrg = orgList[0];
+  // 1. Require user session and use organizationId from session
+  const session = await requireUser();
+  const currentOrgId = session.organizationId;
 
-  // Jika tabel organizations kosong, tampilkan panduan menjalankan seed
-  if (!activeOrg) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
-        <div className="max-w-md space-y-6 bg-card p-8 rounded-2xl border shadow-lg">
-          <div className="w-16 h-16 bg-amber-500/10 text-amber-600 rounded-full flex items-center justify-center mx-auto">
-            <AlertCircle className="w-8 h-8" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Database Belum Siap</h1>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Belum ada data organisasi yang ditemukan di database PostgreSQL Anda. Jalankan perintah di bawah ini untuk mengisi data awal (seed).
-            </p>
-          </div>
-          <div className="bg-muted p-4 rounded-xl font-mono text-xs text-foreground select-all border">
-            npx tsx db/seed.ts
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Setelah menjalankan perintah tersebut, muat ulang halaman ini.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Ambil data organisasi aktif
+  const [activeOrg] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, currentOrgId));
 
-  const currentOrgId = activeOrg.id;
-  const agencyName = activeOrg.name;
+  const agencyName = activeOrg ? activeOrg.name : 'Nusantara Creative Studio';
 
   // Helper formatter mata uang Rupiah Indonesia
   const formatRupiah = (val: string | number | null | undefined) => {
@@ -119,6 +103,8 @@ export default async function AgencyERPDashboard() {
     0
   );
 
+  const canManageActions = session.role === 'OWNER' || session.role === 'PM';
+
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans">
       {/* HEADER & NAVIGASI */}
@@ -143,7 +129,20 @@ export default async function AgencyERPDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full sm:w-auto justify-end">
+            <div className="flex items-center gap-2 bg-muted/60 px-3 py-1.5 rounded-lg border text-xs">
+              <UserIcon className="w-4 h-4 text-muted-foreground" />
+              <span className="font-semibold text-foreground">{session.name}</span>
+              <Badge variant="secondary" className="text-[10px] py-0 h-4 font-mono font-bold">
+                {session.role}
+              </Badge>
+              <form action={logoutAction} className="inline-block ml-2">
+                <Button type="submit" variant="ghost" size="sm" className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+                  <LogOut className="w-3.5 h-3.5 mr-1" /> Keluar
+                </Button>
+              </form>
+            </div>
+
             <Link href="/accounting/journals">
               <Button variant="outline" size="sm" className="gap-2 shadow-sm">
                 <BookOpen className="w-4 h-4 text-primary" />
@@ -151,13 +150,17 @@ export default async function AgencyERPDashboard() {
               </Button>
             </Link>
 
-            {/* 3 TOMBOL AKSI BARU BESERTA MODALNYA (Client Components yang mengelola state & reload secara internal) */}
-            <CreateClientModal currentOrgId={currentOrgId} />
-            <CreateUserModal currentOrgId={currentOrgId} />
-            <CreateQuotationModal 
-              currentOrgId={currentOrgId} 
-              clientsList={clientsList} 
-            />
+            {/* Tombol Aksi RBAC: Hanya muncul jika role OWNER atau PM */}
+            {canManageActions && (
+              <>
+                <CreateClientModal currentOrgId={currentOrgId} />
+                <CreateUserModal currentOrgId={currentOrgId} />
+                <CreateQuotationModal 
+                  currentOrgId={currentOrgId} 
+                  clientsList={clientsList} 
+                />
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -285,12 +288,16 @@ export default async function AgencyERPDashboard() {
                           </TableCell>
                           <TableCell className="text-center">
                             {isDraft ? (
-                              <ApproveQuotationModalClient
-                                quotationId={quotation.id}
-                                quotationTitle={quotation.title}
-                                totalAmount={totalAmtNum}
-                                currentOrgId={currentOrgId}
-                              />
+                              canManageActions ? (
+                                <ApproveQuotationModalClient
+                                  quotationId={quotation.id}
+                                  quotationTitle={quotation.title}
+                                  totalAmount={totalAmtNum}
+                                  currentOrgId={currentOrgId}
+                                />
+                              ) : (
+                                <Badge variant="secondary" className="text-[11px]">DRAFT</Badge>
+                              )
                             ) : (
                               <Badge 
                                 className={

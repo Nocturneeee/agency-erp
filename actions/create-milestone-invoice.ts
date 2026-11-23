@@ -11,6 +11,7 @@ import {
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { requireRole } from '@/lib/auth';
 
 const createInvoiceSchema = z.object({
   milestoneId: z.string().uuid(),
@@ -26,6 +27,7 @@ export async function createMilestoneInvoiceAction(
   rawInput: CreateInvoiceInput,
   currentOrgId: string
 ) {
+  await requireRole(['OWNER', 'PM', 'FINANCE']);
   const parsed = createInvoiceSchema.safeParse(rawInput);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };

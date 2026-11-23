@@ -1,22 +1,53 @@
 import { db } from '@/db';
 import { journalEntries, journalLines } from '@/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
+import { requireUser } from '@/lib/auth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Calendar, FileText } from 'lucide-react';
+import { BookOpen, Calendar, FileText, AlertOctagon } from 'lucide-react';
 
 export default async function AccountingJournalsPage() {
-  // Ambil semua entri jurnal diurutkan dari yang terbaru
+  // 1. Ambil sesi asli user
+  const session = await requireUser();
+
+  // 2. Guard RBAC khusus Buku Besar: Hanya OWNER dan FINANCE
+  if (session.role !== 'OWNER' && session.role !== 'FINANCE') {
+    return (
+      <div className="container mx-auto py-16 px-4 max-w-xl">
+        <Card className="border-red-200 bg-red-50/50 text-center shadow-md">
+          <CardHeader className="space-y-3">
+            <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+              <AlertOctagon className="w-6 h-6" />
+            </div>
+            <CardTitle className="text-xl font-bold text-red-900">Akses Ditolak</CardTitle>
+            <CardDescription className="text-red-700 text-sm">
+              Hanya Owner dan Finance yang dapat melihat Buku Besar.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pb-6">
+            <p className="text-xs text-muted-foreground">
+              Peran Anda saat ini adalah <span className="font-semibold text-foreground uppercase">{session.role}</span> ({session.name}). Hubungi Owner jika Anda membutuhkan akses ini.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // 3. Ambil semua entri jurnal diurutkan dari yang terbaru (difilter organizationId)
   const entries = await db
     .select()
     .from(journalEntries)
+    .where(desc(journalEntries.createdAt) ? undefined : undefined) // or filter organizationId if needed
     .orderBy(desc(journalEntries.createdAt));
+
+  // Filter berdasarkan organizationId session
+  const orgEntries = entries.filter((e) => e.organizationId === session.organizationId);
 
   // Ambil seluruh lines untuk entri-entri tersebut
   const lines = await db.select().from(journalLines);
 
-  // Group lines berdasarkan journalEntryId
   const linesByEntryId = lines.reduce((acc, line) => {
     if (!acc[line.journalEntryId]) {
       acc[line.journalEntryId] = [];
@@ -42,6 +73,9 @@ export default async function AccountingJournalsPage() {
             <Badge variant="outline" className="text-xs uppercase font-semibold">
               General Ledger
             </Badge>
+            <Badge variant="secondary" className="text-[10px] font-mono">
+              {session.name} ({session.role})
+            </Badge>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-primary" /> Buku Besar Jurnal Akuntansi
@@ -53,14 +87,14 @@ export default async function AccountingJournalsPage() {
       </div>
 
       <div className="space-y-6">
-        {entries.length === 0 ? (
+        {orgEntries.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12 text-muted-foreground">
               Belum ada jurnal akuntansi tercatat.
             </CardContent>
           </Card>
         ) : (
-          entries.map((entry) => {
+          orgEntries.map((entry) => {
             const entryLines = linesByEntryId[entry.id] || [];
             const totalDebit = entryLines.reduce((sum, l) => sum + Number(l.debit), 0);
             const totalCredit = entryLines.reduce((sum, l) => sum + Number(l.credit), 0);

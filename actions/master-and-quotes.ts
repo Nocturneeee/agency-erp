@@ -5,6 +5,8 @@ import { clients, users, quotations } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
+import { requireRole } from '@/lib/auth';
 
 // ============================================================================
 // 1. CREATE CLIENT ACTION
@@ -20,6 +22,7 @@ const createClientSchema = z.object({
 export type CreateClientInput = z.infer<typeof createClientSchema>;
 
 export async function createClientAction(rawInput: CreateClientInput, currentOrgId: string) {
+  await requireRole(['OWNER', 'PM', 'FINANCE']);
   const parsed = createClientSchema.safeParse(rawInput);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
@@ -61,6 +64,7 @@ const createUserSchema = z.object({
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 
 export async function createUserAction(rawInput: CreateUserInput, currentOrgId: string) {
+  await requireRole(['OWNER', 'PM']);
   const parsed = createUserSchema.safeParse(rawInput);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
@@ -69,12 +73,15 @@ export async function createUserAction(rawInput: CreateUserInput, currentOrgId: 
   const { name, email, role, hourlyCostRate } = parsed.data;
 
   try {
+    const defaultPasswordHash = await bcrypt.hash('password123', 10);
+
     const [newUser] = await db
       .insert(users)
       .values({
         organizationId: currentOrgId,
         name,
         email,
+        passwordHash: defaultPasswordHash,
         role,
         hourlyCostRate: hourlyCostRate.toFixed(2),
       })
@@ -101,6 +108,7 @@ const createQuotationSchema = z.object({
 export type CreateQuotationInput = z.infer<typeof createQuotationSchema>;
 
 export async function createQuotationAction(rawInput: CreateQuotationInput, currentOrgId: string) {
+  await requireRole(['OWNER', 'PM']);
   const parsed = createQuotationSchema.safeParse(rawInput);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
