@@ -11,12 +11,12 @@ async function seed() {
   const [org] = await db
     .insert(organizations)
     .values({
-      name: 'Nusantara Creative Studio',
-      slug: 'nusantara-creative',
+      name: 'Telucode',
+      slug: 'telucode',
     })
     .onConflictDoUpdate({
       target: organizations.slug,
-      set: { name: 'Nusantara Creative Studio' },
+      set: { name: 'Telucode' },
     })
     .returning();
 

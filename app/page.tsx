@@ -39,7 +39,7 @@ export default async function AgencyERPDashboard() {
     .from(organizations)
     .where(eq(organizations.id, currentOrgId));
 
-  const agencyName = activeOrg ? activeOrg.name : 'Nusantara Creative Studio';
+  const agencyName = activeOrg ? activeOrg.name : 'Telucode';
 
   // Helper formatter mata uang Rupiah Indonesia
   const formatRupiah = (val: string | number | null | undefined) => {
