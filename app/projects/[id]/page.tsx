@@ -12,6 +12,7 @@ import {
 import { eq, desc } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -25,7 +26,8 @@ import {
   TrendingUp, 
   Users, 
   Receipt, 
-  AlertTriangle 
+  AlertTriangle,
+  ArrowLeft
 } from 'lucide-react';
 import { IssueInvoiceModalWrapper } from '@/components/IssueInvoiceModalWrapper';
 import { LogTimeModal } from '@/components/LogTimeModal';
@@ -133,44 +135,54 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
       {/* HEADER INFO PROYEK */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-xl border shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs uppercase font-semibold">
-              {project.status.replace('_', ' ')}
-            </Badge>
-            {quotation && (
-              <span className="text-xs text-muted-foreground font-mono">
-                Ref: {quotation.quotationNumber}
-              </span>
-            )}
-            <Badge variant="secondary" className="text-[10px] font-mono">
-              Login: {session.name} ({session.role})
-            </Badge>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{project.name}</h1>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
-            <Building2 className="w-4 h-4" />
-            <span>{client.companyName}</span>
-          </div>
-        </div>
+      <div>
+        <Link
+          href="/"
+          className="group inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3.5 py-2 text-sm font-medium text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white active:scale-[0.98] w-fit mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+          <span>Kembali ke Dashboard</span>
+        </Link>
 
-        <div className="flex flex-wrap gap-4 text-sm bg-muted/50 p-4 rounded-lg border">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="text-xs text-muted-foreground">Budget Jam</p>
-              <p className="font-semibold text-foreground">{project.budgetHours} Jam</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-xl border shadow-sm">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs uppercase font-semibold">
+                {project.status.replace('_', ' ')}
+              </Badge>
+              {quotation && (
+                <span className="text-xs text-muted-foreground font-mono">
+                  Ref: {quotation.quotationNumber}
+                </span>
+              )}
+              <Badge variant="secondary" className="text-[10px] font-mono">
+                Login: {session.name} ({session.role})
+              </Badge>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{project.name}</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
+              <Building2 className="w-4 h-4" />
+              <span>{client.companyName}</span>
             </div>
           </div>
-          <div className="w-px bg-border hidden sm:block" />
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="text-xs text-muted-foreground">Jadwal</p>
-              <p className="font-semibold text-foreground">
-                {project.startDate || '-'} s/d {project.deadline || '-'}
-              </p>
+
+          <div className="flex flex-wrap gap-4 text-sm bg-muted/50 p-4 rounded-lg border">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Budget Jam</p>
+                <p className="font-semibold text-foreground">{project.budgetHours} Jam</p>
+              </div>
+            </div>
+            <div className="w-px bg-border hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Jadwal</p>
+                <p className="font-semibold text-foreground">
+                  {project.startDate || '-'} s/d {project.deadline || '-'}
+                </p>
+              </div>
             </div>
           </div>
         </div>

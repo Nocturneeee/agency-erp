@@ -2,10 +2,11 @@ import { db } from '@/db';
 import { journalEntries, journalLines } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 import { requireUser } from '@/lib/auth';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Calendar, FileText, AlertOctagon } from 'lucide-react';
+import { BookOpen, Calendar, FileText, AlertOctagon, ArrowLeft } from 'lucide-react';
 import { ExportJournalsButton } from '@/components/ExportJournalsButton';
 
 export default async function AccountingJournalsPage() {
@@ -68,30 +69,40 @@ export default async function AccountingJournalsPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-xl border shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs uppercase font-semibold">
-              General Ledger
-            </Badge>
-            <Badge variant="secondary" className="text-[10px] font-mono">
-              {session.name} ({session.role})
-            </Badge>
+      <div>
+        <Link
+          href="/"
+          className="group inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3.5 py-2 text-sm font-medium text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white active:scale-[0.98] w-fit mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+          <span>Kembali ke Dashboard</span>
+        </Link>
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-xl border shadow-sm">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs uppercase font-semibold">
+                General Ledger
+              </Badge>
+              <Badge variant="secondary" className="text-[10px] font-mono">
+                {session.name} ({session.role})
+              </Badge>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <BookOpen className="w-6 h-6 text-primary" /> Buku Besar Jurnal Akuntansi
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Catatan transaksi otomatis (Immutable Ledger) yang mencatat setiap penerbitan invoice, pembayaran, dan biaya operasional.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-primary" /> Buku Besar Jurnal Akuntansi
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Catatan transaksi otomatis (Immutable Ledger) yang mencatat setiap penerbitan invoice, pembayaran, dan biaya operasional.
-          </p>
-        </div>
-        <div className="flex items-start justify-between gap-2">
-          {(session.role === 'OWNER' || session.role === 'FINANCE') && (
-            <ExportJournalsButton 
-              organizationId={session.organizationId} 
-              hasData={orgEntries.length > 0} 
-            />
-          )}
+          <div className="flex items-start justify-between gap-2">
+            {(session.role === 'OWNER' || session.role === 'FINANCE') && (
+              <ExportJournalsButton 
+                organizationId={session.organizationId} 
+                hasData={orgEntries.length > 0} 
+              />
+            )}
+          </div>
         </div>
       </div>
 
