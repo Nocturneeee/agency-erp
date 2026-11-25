@@ -60,10 +60,10 @@ export function CreateUserModal({ currentOrgId }: CreateUserModalProps) {
       <Button
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="gap-1.5 shadow-sm bg-primary hover:bg-primary/90"
+        className="inline-flex items-center gap-1.5 shadow-sm bg-primary hover:bg-primary/90"
       >
         <Plus className="w-4 h-4" />
-        <span>+ Tim / Staf</span>
+        <span>Tim / Staf</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

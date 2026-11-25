@@ -63,10 +63,10 @@ export function CreateClientModal({ currentOrgId }: CreateClientModalProps) {
       <Button
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="gap-1.5 shadow-sm bg-primary hover:bg-primary/90"
+        className="inline-flex items-center gap-1.5 shadow-sm bg-primary hover:bg-primary/90"
       >
         <Plus className="w-4 h-4" />
-        <span>+ Klien Baru</span>
+        <span>Klien Baru</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

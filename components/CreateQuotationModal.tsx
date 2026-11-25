@@ -69,10 +69,10 @@ export function CreateQuotationModal({ currentOrgId, clientsList }: CreateQuotat
       <Button
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="gap-1.5 shadow-sm bg-primary hover:bg-primary/90"
+        className="inline-flex items-center gap-1.5 shadow-sm bg-primary hover:bg-primary/90"
       >
         <Plus className="w-4 h-4" />
-        <span>+ Buat Quotation</span>
+        <span>Buat Quotation</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
