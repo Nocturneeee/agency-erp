@@ -1,57 +1,62 @@
-import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'agency-erp-super-secret-jwt-key-2026-secure'
+const secretKey = new TextEncoder().encode(
+  process.env.AUTH_SECRET || 'fallback-dev-secret-key-minimal-32-chars'
 );
+
+const COOKIE_NAME = 'agency_erp_session';
+
+export type UserRole = 'OWNER' | 'PM' | 'FINANCE' | 'STAFF';
 
 export interface SessionPayload {
   userId: string;
   organizationId: string;
-  email: string;
   name: string;
-  role: 'OWNER' | 'PM' | 'FINANCE' | 'STAFF';
+  email: string;
+  role: UserRole;
 }
 
+// 1. Membuat cookie sesi terenkripsi saat berhasil login
 export async function createSession(payload: SessionPayload) {
   const token = await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('7d')
-    .sign(JWT_SECRET);
+    .setExpirationTime('7d') // Sesi berlaku 7 hari
+    .sign(secretKey);
 
   const cookieStore = await cookies();
-  cookieStore.set('session', token, {
+  cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7,
   });
 }
 
+// 2. Membaca sesi user yang sedang aktif (return null jika belum login)
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
-  const token = cookieStore.get('session')?.value;
+  const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
 
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, secretKey);
     return payload as unknown as SessionPayload;
   } catch {
     return null;
   }
 }
 
+// 3. Menghapus sesi saat logout
 export async function destroySession() {
   const cookieStore = await cookies();
-  cookieStore.delete('session');
+  cookieStore.delete(COOKIE_NAME);
 }
 
+// 4. Penjaga Halaman (Redirect otomatis ke /login jika belum masuk)
 export async function requireUser(): Promise<SessionPayload> {
   const session = await getSession();
   if (!session) {
@@ -60,10 +65,16 @@ export async function requireUser(): Promise<SessionPayload> {
   return session;
 }
 
-export async function requireRole(allowedRoles: ('OWNER' | 'PM' | 'FINANCE' | 'STAFF')[]) {
-  const session = await requireUser();
+// 5. Penjaga RBAC untuk Server Actions (Lempar error jika role tidak sesuai)
+export async function requireRole(allowedRoles: UserRole[]): Promise<SessionPayload> {
+  const session = await getSession();
+  if (!session) {
+    throw new Error('Sesi berakhir. Silakan login kembali.');
+  }
   if (!allowedRoles.includes(session.role)) {
-    throw new Error(`Akses Ditolak: Role ${session.role} tidak diizinkan melakukan tindakan ini.`);
+    throw new Error(
+      `Akses ditolak: Fitur ini hanya dapat diakses oleh ${allowedRoles.join(' / ')}.`
+    );
   }
   return session;
 }

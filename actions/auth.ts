@@ -4,34 +4,48 @@ import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { createSession, destroySession, getSession } from '@/lib/auth';
+import { createSession, destroySession, UserRole } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { z } from 'zod';
 
-export async function loginAction(formData: FormData) {
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
+const loginSchema = z.object({
+  email: z.string().email('Format email tidak valid'),
+  password: z.string().min(1, 'Password wajib diisi'),
+});
 
-  if (!email || !password) {
-    return { error: 'Email dan password wajib diisi.' };
+export async function loginAction(rawInput: { email: string; password: string }) {
+  const parsed = loginSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
   }
 
-  const [user] = await db.select().from(users).where(eq(users.email, email));
-  if (!user) {
-    return { error: 'Email atau password salah.' };
-  }
+  const { email, password } = parsed.data;
 
-  const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-  if (!isValidPassword) {
-    return { error: 'Email atau password salah.' };
-  }
+  try {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase().trim()));
 
-  await createSession({
-    userId: user.id,
-    organizationId: user.organizationId,
-    email: user.email,
-    name: user.name,
-    role: user.role as 'OWNER' | 'PM' | 'FINANCE' | 'STAFF',
-  });
+    if (!user || !user.passwordHash) {
+      return { success: false, error: 'Email atau password salah.' };
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      return { success: false, error: 'Email atau password salah.' };
+    }
+
+    await createSession({
+      userId: user.id,
+      organizationId: user.organizationId,
+      name: user.name,
+      email: user.email,
+      role: user.role as UserRole,
+    });
+  } catch (error) {
+    return { success: false, error: 'Terjadi kesalahan saat proses login.' };
+  }
 
   redirect('/');
 }
