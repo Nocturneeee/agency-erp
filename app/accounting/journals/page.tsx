@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Calendar, FileText, AlertOctagon } from 'lucide-react';
+import { ExportJournalsButton } from '@/components/ExportJournalsButton';
 
 export default async function AccountingJournalsPage() {
   // 1. Ambil sesi asli user
@@ -83,6 +84,14 @@ export default async function AccountingJournalsPage() {
           <p className="text-sm text-muted-foreground">
             Catatan transaksi otomatis (Immutable Ledger) yang mencatat setiap penerbitan invoice, pembayaran, dan biaya operasional.
           </p>
+        </div>
+        <div className="flex items-start justify-between gap-2">
+          {(session.role === 'OWNER' || session.role === 'FINANCE') && (
+            <ExportJournalsButton 
+              organizationId={session.organizationId} 
+              hasData={orgEntries.length > 0} 
+            />
+          )}
         </div>
       </div>
 

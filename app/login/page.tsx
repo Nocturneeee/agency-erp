@@ -76,7 +76,7 @@ export default function LoginPage() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="nama@nusantaracreative.id"
+                    placeholder="nama@telucode.id"
                     required
                     className="pl-9"
                   />
@@ -111,36 +111,36 @@ export default function LoginPage() {
               <div className="grid grid-cols-1 gap-1.5 text-xs">
                 <button
                   type="button"
-                  onClick={() => fillDemo('raka@nusantaracreative.id')}
+                  onClick={() => fillDemo('raka@telucode.id')}
                   className="flex items-center justify-between p-2 rounded bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all text-left"
                 >
                   <div>
                     <span className="font-medium text-slate-800">Raka Pratama</span>
-                    <span className="text-slate-500 block">raka@nusantaracreative.id</span>
+                    <span className="text-slate-500 block">raka@telucode.id</span>
                   </div>
                   <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-800">OWNER</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => fillDemo('finance@nusantaracreative.id')}
+                  onClick={() => fillDemo('finance@telucode.id')}
                   className="flex items-center justify-between p-2 rounded bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all text-left"
                 >
                   <div>
                     <span className="font-medium text-slate-800">Sinta Wijaya</span>
-                    <span className="text-slate-500 block">finance@nusantaracreative.id</span>
+                    <span className="text-slate-500 block">finance@telucode.id</span>
                   </div>
                   <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-800">FINANCE</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => fillDemo('nadia@nusantaracreative.id')}
+                  onClick={() => fillDemo('nadia@telucode.id')}
                   className="flex items-center justify-between p-2 rounded bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all text-left"
                 >
                   <div>
                     <span className="font-medium text-slate-800">Nadia Putri</span>
-                    <span className="text-slate-500 block">nadia@nusantaracreative.id</span>
+                    <span className="text-slate-500 block">nadia@telucode.id</span>
                   </div>
                   <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-100 text-sky-800">STAFF</span>
                 </button>

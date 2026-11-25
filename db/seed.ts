@@ -27,7 +27,7 @@ async function seed() {
     {
       organizationId: org.id,
       name: 'Raka Pratama',
-      email: 'raka@nusantaracreative.id',
+      email: 'raka@telucode.id',
       passwordHash: defaultPassword,
       role: 'OWNER' as const,
       hourlyCostRate: '250000.00',
@@ -35,7 +35,7 @@ async function seed() {
     {
       organizationId: org.id,
       name: 'Sinta Wijaya',
-      email: 'finance@nusantaracreative.id',
+      email: 'finance@telucode.id',
       passwordHash: defaultPassword,
       role: 'FINANCE' as const,
       hourlyCostRate: '150000.00',
@@ -43,7 +43,7 @@ async function seed() {
     {
       organizationId: org.id,
       name: 'Nadia Putri',
-      email: 'nadia@nusantaracreative.id',
+      email: 'nadia@telucode.id',
       passwordHash: defaultPassword,
       role: 'STAFF' as const,
       hourlyCostRate: '120000.00',
