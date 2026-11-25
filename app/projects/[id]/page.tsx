@@ -423,22 +423,22 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               users={orgUsers.map((u) => ({ id: u.id, name: u.name }))}
             />
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="rounded-b-lg border-t overflow-hidden">
+          <CardContent>
+            <div className="mt-2 overflow-x-auto rounded-lg border border-border">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/40">
-                    <TableHead className="w-[20%]">Tanggal</TableHead>
-                    <TableHead className="w-[25%]">Staf</TableHead>
-                    <TableHead className="w-[15%]">Jam</TableHead>
-                    {!isStaff && <TableHead className="w-[20%] text-right">Subtotal</TableHead>}
-                    <TableHead className="w-[20%]">Ket</TableHead>
+                    <TableHead className="w-[18%] px-4 py-3">Tanggal</TableHead>
+                    <TableHead className="w-[22%] px-4 py-3">Staf</TableHead>
+                    <TableHead className="w-[15%] px-4 py-3">Jam</TableHead>
+                    {!isStaff && <TableHead className="w-[22%] px-4 py-3 text-right">Subtotal</TableHead>}
+                    <TableHead className="w-[23%] px-4 py-3">Ket</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="divide-y divide-border">
                   {timeEntriesList.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={isStaff ? 4 : 5} className="text-center py-8 text-muted-foreground text-xs">
+                      <TableCell colSpan={isStaff ? 4 : 5} className="py-8 text-center text-sm text-muted-foreground">
                         Belum ada catatan timesheet.
                       </TableCell>
                     </TableRow>
@@ -449,20 +449,20 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                       const subtotal = hours * rate;
 
                       return (
-                        <TableRow key={entry.id} className="text-xs">
-                          <TableCell className="font-mono text-muted-foreground">
+                        <TableRow key={entry.id} className="text-xs hover:bg-muted/30 transition-colors">
+                          <TableCell className="font-mono text-muted-foreground px-4 py-3">
                             {entry.workDate}
                           </TableCell>
-                          <TableCell className="font-semibold text-foreground">
+                          <TableCell className="font-semibold text-foreground px-4 py-3">
                             {user.name}
                           </TableCell>
-                          <TableCell className="font-mono">{hours} Jam</TableCell>
+                          <TableCell className="font-mono px-4 py-3">{hours} Jam</TableCell>
                           {!isStaff && (
-                            <TableCell className="text-right font-mono font-medium">
+                            <TableCell className="text-right font-mono font-medium px-4 py-3">
                               {formatRupiah(subtotal)}
                             </TableCell>
                           )}
-                          <TableCell className="text-muted-foreground truncate max-w-[120px]" title={entry.description || ''}>
+                          <TableCell className="text-muted-foreground px-4 py-3 max-w-[160px] truncate" title={entry.description || ''}>
                             {entry.description || '-'}
                           </TableCell>
                         </TableRow>
@@ -492,42 +492,42 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 currentOrgId={organizationId}
               />
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="rounded-b-lg border-t overflow-hidden">
+            <CardContent>
+              <div className="mt-2 overflow-x-auto rounded-lg border border-border">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/40">
-                      <TableHead className="w-[25%]">Vendor</TableHead>
-                      <TableHead className="w-[20%]">Kategori</TableHead>
-                      <TableHead className="w-[25%] text-right">Nominal</TableHead>
-                      <TableHead className="w-[30%]">Tanggal &amp; Ket</TableHead>
+                      <TableHead className="w-[28%] px-4 py-3">Vendor</TableHead>
+                      <TableHead className="w-[22%] px-4 py-3">Kategori</TableHead>
+                      <TableHead className="w-[25%] px-4 py-3 text-right">Nominal</TableHead>
+                      <TableHead className="w-[25%] px-4 py-3">Tanggal &amp; Ket</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
+                  <TableBody className="divide-y divide-border">
                     {expensesList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground text-xs">
+                        <TableCell colSpan={4} className="py-8 text-center text-sm text-muted-foreground">
                           Belum ada biaya vendor tercatat.
                         </TableCell>
                       </TableRow>
                     ) : (
                       expensesList.map((exp) => (
-                        <TableRow key={exp.id} className="text-xs">
-                          <TableCell className="font-semibold text-foreground">
+                        <TableRow key={exp.id} className="text-xs hover:bg-muted/30 transition-colors">
+                          <TableCell className="font-semibold text-foreground px-4 py-3">
                             {exp.vendorName}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-4 py-3">
                             <Badge variant="outline" className="text-[10px] font-mono">
                               {exp.category}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right font-mono font-semibold text-foreground">
+                          <TableCell className="text-right font-mono font-semibold text-foreground px-4 py-3">
                             {formatRupiah(exp.amount)}
                           </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            <div>{exp.expenseDate}</div>
+                          <TableCell className="text-muted-foreground px-4 py-3">
+                            <div className="font-mono">{exp.expenseDate}</div>
                             {exp.description && (
-                              <div className="text-[10px] truncate max-w-[140px]" title={exp.description}>
+                              <div className="text-[10px] text-muted-foreground/80 truncate max-w-[160px]" title={exp.description}>
                                 {exp.description}
                               </div>
                             )}

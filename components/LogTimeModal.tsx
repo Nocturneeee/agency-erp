@@ -66,7 +66,7 @@ export function LogTimeModal({ projectId, currentOrgId, users }: LogTimeModalPro
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger>
-        <Button size="sm" className="gap-1.5 h-9 pointer-events-none" type="button" tabIndex={-1}>
+        <Button size="sm" className="gap-1.5 h-9" type="button">
           <Plus className="w-4 h-4" /> Catat Jam Kerja
         </Button>
       </DialogTrigger>

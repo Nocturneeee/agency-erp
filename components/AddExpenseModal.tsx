@@ -63,8 +63,8 @@ export function AddExpenseModal({ projectId, currentOrgId }: AddExpenseModalProp
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger>
-        <Button size="sm" variant="outline" className="gap-1.5 h-9 pointer-events-none" type="button" tabIndex={-1}>
-          <Plus className="w-4 h-4" /> Catat Biaya Eksternal
+        <Button size="sm" variant="outline" className="gap-1.5 h-9" type="button">
+          <Plus className="w-4 h.4" /> Catat Biaya Eksternal
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

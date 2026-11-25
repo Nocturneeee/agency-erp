@@ -230,92 +230,91 @@ export default async function AgencyERPDashboard() {
         </div>
 
         {/* SECTION 1 — DAFTAR QUOTATIONS (PENAWARAN HARGA) */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+        <section>
+          <Card className="shadow-sm border-border/60">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" /> Daftar Penawaran Harga (Quotations)
-              </h2>
-              <p className="text-sm text-muted-foreground">
+              </CardTitle>
+              <CardDescription>
                 Kelola dokumen penawaran klien. Setujui dokumen berstatus DRAFT untuk otomatis membuka proyek baru.
-              </p>
-            </div>
-          </div>
-
-          <Card className="shadow-sm border-border/60 overflow-hidden">
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40">
-                    <TableHead className="w-[14%]">Nomor</TableHead>
-                    <TableHead className="w-[26%]">Judul Proyek</TableHead>
-                    <TableHead className="w-[20%]">Nama Klien</TableHead>
-                    <TableHead className="w-[12%]">Tipe Billing</TableHead>
-                    <TableHead className="w-[15%] text-right">Total Nominal</TableHead>
-                    <TableHead className="w-[13%] text-center">Status &amp; Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {quotationsList.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                        Belum ada data quotation tercatat.
-                      </TableCell>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mt-2 overflow-x-auto rounded-lg border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40">
+                      <TableHead className="w-[14%] px-4 py-3">Nomor</TableHead>
+                      <TableHead className="w-[26%] px-4 py-3">Judul Proyek</TableHead>
+                      <TableHead className="w-[20%] px-4 py-3">Nama Klien</TableHead>
+                      <TableHead className="w-[12%] px-4 py-3">Tipe Billing</TableHead>
+                      <TableHead className="w-[15%] px-4 py-3 text-right">Total Nominal</TableHead>
+                      <TableHead className="w-[13%] px-4 py-3 text-center">Status &amp; Aksi</TableHead>
                     </TableRow>
-                  ) : (
-                    quotationsList.map(({ quotation, client }) => {
-                      const isDraft = quotation.status === 'DRAFT';
-                      const totalAmtNum = Number(quotation.totalAmount);
+                  </TableHeader>
+                  <TableBody className="divide-y divide-border">
+                    {quotationsList.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-sm text-muted-foreground">
+                          Belum ada data quotation tercatat.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      quotationsList.map(({ quotation, client }) => {
+                        const isDraft = quotation.status === 'DRAFT';
+                        const totalAmtNum = Number(quotation.totalAmount);
 
-                      return (
-                        <TableRow key={quotation.id} className="hover:bg-muted/30 transition-colors">
-                          <TableCell className="font-mono font-medium text-xs text-muted-foreground">
-                            {quotation.quotationNumber}
-                          </TableCell>
-                          <TableCell className="font-semibold text-foreground">
-                            {quotation.title}
-                          </TableCell>
-                          <TableCell className="text-sm font-medium text-foreground">
-                            {client.companyName}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="text-[11px] font-mono">
-                              {quotation.billingType}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-mono font-semibold text-foreground">
-                            {formatRupiah(totalAmtNum)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {isDraft ? (
-                              canManageActions ? (
-                                <ApproveQuotationModalClient
-                                  quotationId={quotation.id}
-                                  quotationTitle={quotation.title}
-                                  totalAmount={totalAmtNum}
-                                  currentOrgId={currentOrgId}
-                                />
-                              ) : (
-                                <Badge variant="secondary" className="text-[11px]">DRAFT</Badge>
-                              )
-                            ) : (
-                              <Badge 
-                                className={
-                                  quotation.status === 'APPROVED'
-                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30'
-                                    : 'bg-secondary text-secondary-foreground'
-                                }
-                              >
-                                {quotation.status}
+                        return (
+                          <TableRow key={quotation.id} className="hover:bg-muted/30 transition-colors">
+                            <TableCell className="font-mono font-medium text-xs text-muted-foreground px-4 py-3">
+                              {quotation.quotationNumber}
+                            </TableCell>
+                            <TableCell className="font-semibold text-foreground px-4 py-3">
+                              {quotation.title}
+                            </TableCell>
+                            <TableCell className="text-sm font-medium text-foreground px-4 py-3">
+                              {client.companyName}
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
+                              <Badge variant="outline" className="text-[11px] font-mono">
+                                {quotation.billingType}
                               </Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
+                            </TableCell>
+                            <TableCell className="text-right font-mono font-semibold text-foreground px-4 py-3">
+                              {formatRupiah(totalAmtNum)}
+                            </TableCell>
+                            <TableCell className="text-center px-4 py-3">
+                              {isDraft ? (
+                                canManageActions ? (
+                                  <ApproveQuotationModalClient
+                                    quotationId={quotation.id}
+                                    quotationTitle={quotation.title}
+                                    totalAmount={totalAmtNum}
+                                    currentOrgId={currentOrgId}
+                                  />
+                                ) : (
+                                  <Badge variant="secondary" className="text-[11px]">DRAFT</Badge>
+                                )
+                              ) : (
+                                <Badge 
+                                  className={
+                                    quotation.status === 'APPROVED'
+                                      ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30'
+                                      : 'bg-secondary text-secondary-foreground'
+                                  }
+                                >
+                                  {quotation.status}
+                                </Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </section>

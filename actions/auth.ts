@@ -13,8 +13,15 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password wajib diisi'),
 });
 
-export async function loginAction(rawInput: { email: string; password: string }) {
-  const parsed = loginSchema.safeParse(rawInput);
+export async function loginAction(rawInput: FormData | { email: string; password: string }) {
+  let inputData = rawInput;
+  if (rawInput instanceof FormData) {
+    inputData = {
+      email: rawInput.get('email'),
+      password: rawInput.get('password'),
+    };
+  }
+  const parsed = loginSchema.safeParse(inputData);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
   }

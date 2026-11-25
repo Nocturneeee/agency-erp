@@ -15,6 +15,8 @@ function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
   return (
     <DialogPrimitive.Trigger
       data-slot="dialog-trigger"
+      nativeButton={false}
+      render={<span className="inline-block" />}
       {...props}
     />
   )
