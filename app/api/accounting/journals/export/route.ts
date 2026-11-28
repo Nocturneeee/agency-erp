@@ -60,39 +60,43 @@ export async function GET(request: Request) {
     // --- LAPORAN HEADER (Baris 1-4) ---
     // Row 1: Company Name
     const row1 = worksheet.getRow(1);
-    row1.mergeCells('A1:H1');
-    row1.values = [{ text: 'Telucode', font: { bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1F2937' } }, alignment: { horizontal: 'center' }, border: { bottom: { style: 'thin' } } }];
+    worksheet.mergeCells('A1:H1');
+    row1.getCell(1).value = 'Telucode';
     row1.eachCell((cell) => {
       cell.fill = { fgColor: { rgb: '1F2937' }, pattern: 'solid' };
       cell.font = { bold: true, color: { rgb: 'FFFFFF' }, size: 12 };
+      cell.alignment = { horizontal: 'center' };
       cell.border = { bottom: { style: 'thin' } };
     });
 
     // Row 2: Report Title
     const row2 = worksheet.getRow(2);
-    row2.mergeCells('A2:H2');
-    row2.values = [{ text: 'BUKU BESAR JURNAL AKUNTANSI - GENERAL LEDGER', font: { bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1F2937' } }, alignment: { horizontal: 'center' }, border: { bottom: { style: 'thin' } } }];
+    worksheet.mergeCells('A2:H2');
+    row2.getCell(1).value = 'BUKU BESAR JURNAL AKUNTANSI - GENERAL LEDGER';
     row2.eachCell((cell) => {
       cell.fill = { fgColor: { rgb: '1F2937' }, pattern: 'solid' };
       cell.font = { bold: true, color: { rgb: 'FFFFFF' }, size: 14 };
+      cell.alignment = { horizontal: 'center' };
       cell.border = { bottom: { style: 'thin' } };
     });
 
     // Row 3: Tanggal Cetak
     const row3 = worksheet.getRow(3);
-    row3.mergeCells('A3:H3');
-    row3.values = [{ text: `Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'number' }})`, font: { size: 10, color: { rgb: '6B7280' } }, alignment: { horizontal: 'left' }, border: { bottom: { style: 'thin' } } }];
+    worksheet.mergeCells('A3:H3');
+    row3.getCell(1).value = `Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
     row3.eachCell((cell) => {
       cell.font = { size: 10, color: { rgb: '6B7280' } };
+      cell.alignment = { horizontal: 'left' };
       cell.border = { bottom: { style: 'thin' } };
     });
 
     // Row 4: Dicetak Oleh (menggunakan nama dari organization default since kita tidak punya session di sini)
     const row4 = worksheet.getRow(4);
-    row4.mergeCells('A4:H4');
-    row4.values = [{ text: 'Dicetak Oleh: Sistem Agency ERP', font: { size: 10, color: { rgb: '6B7280' } }, alignment: { horizontal: 'left' }, border: { bottom: { style: 'thin' } } }];
+    worksheet.mergeCells('A4:H4');
+    row4.getCell(1).value = 'Dicetak Oleh: Sistem Agency ERP';
     row4.eachCell((cell) => {
       cell.font = { size: 10, color: { rgb: '6B7280' } };
+      cell.alignment = { horizontal: 'left' };
       cell.border = { bottom: { style: 'thin' } };
     });
 
@@ -100,13 +104,14 @@ export async function GET(request: Request) {
     const headers = ['No. Jurnal', 'Tanggal', 'Tipe Transaksi', 'Keterangan Transaksi', 'Kode Akun', 'Nama Akun', 'Debit', 'Kredit'];
     const headerRow = worksheet.getRow(5);
     
-    headerRow.values = headers.map(h => ({
-      text: h,
-      font: { bold: true, color: { rgb: 'FFFFFF' }, size: 10 },
-      fill: { fgColor: { rgb: '1F2937' } },
-      alignment: { horizontal: 'center' },
-      border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } }
-    }));
+    headers.forEach((h, index) => {
+      const cell = headerRow.getCell(index + 1);
+      cell.value = h;
+      cell.font = { bold: true, color: { rgb: 'FFFFFF' }, size: 10 };
+      cell.fill = { fgColor: { rgb: '1F2937' }, pattern: 'solid' };
+      cell.alignment = { horizontal: 'center' };
+      cell.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+    });
 
     headerRow.eachCell((cell, colIndex) => {
       cell.fill = { fgColor: { rgb: '1F2937' }, pattern: 'solid' };
