@@ -44,7 +44,9 @@ export function ExportJournalsButton({ organizationId, hasData }: ExportJournals
       link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
-      link.parentNode.removeChild(link);
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Export error:', error);

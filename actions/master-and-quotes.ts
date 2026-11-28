@@ -121,3 +121,7 @@ export async function createQuotationAction(
     return { success: false, error: 'Gagal membuat penawaran harga.' };
   }
 }
+
+export type CreateClientInput = z.infer<typeof createClientSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type CreateQuotationInput = z.infer<typeof createQuotationSchema>;

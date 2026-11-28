@@ -17,8 +17,8 @@ export async function loginAction(rawInput: FormData | { email: string; password
   let inputData = rawInput;
   if (rawInput instanceof FormData) {
     inputData = {
-      email: rawInput.get('email'),
-      password: rawInput.get('password'),
+      email: String(rawInput.get('email') || ''),
+      password: String(rawInput.get('password') || ''),
     };
   }
   const parsed = loginSchema.safeParse(inputData);
