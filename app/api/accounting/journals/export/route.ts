@@ -83,7 +83,13 @@ export async function GET(request: Request) {
     // Row 3: Tanggal Cetak
     const row3 = worksheet.getRow(3);
     worksheet.mergeCells('A3:H3');
-    row3.getCell(1).value = `Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+    const currentDateStr = new Date().toLocaleDateString('id-ID', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    row3.getCell(1).value = `Tanggal Cetak: ${currentDateStr}`;
     row3.eachCell((cell) => {
       cell.font = { size: 10, color: { rgb: '6B7280' } };
       cell.alignment = { horizontal: 'left' };
