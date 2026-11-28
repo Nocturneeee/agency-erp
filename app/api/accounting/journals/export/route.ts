@@ -5,7 +5,7 @@ import { eq, desc } from 'drizzle-orm';
 import { createClient } from '@supabase/supabase-js';
 import ExcelJS from 'exceljs';
 
-// Simple role check middleware approach
+// Simple role check middleware approach - cache bust
 // In production, this would use proper session validation from auth headers/cookies
 
 export async function GET(request: Request) {
