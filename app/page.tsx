@@ -33,12 +33,13 @@ export default async function AgencyERPDashboard() {
   const session = await requireUser();
   const currentOrgId = session.organizationId;
 
-  // Ambil data organisasi aktif
+  // Ambil data organisasi aktif dengan fallback aman jika ID tidak ditemukan di DB
   const [activeOrg] = await db
     .select()
     .from(organizations)
     .where(eq(organizations.id, currentOrgId));
 
+  const effectiveOrgId = activeOrg ? currentOrgId : (await db.select().from(organizations).limit(1))[0]?.id || currentOrgId;
   const agencyName = activeOrg ? activeOrg.name : 'Telucode';
 
   // Helper formatter mata uang Rupiah Indonesia
@@ -55,7 +56,7 @@ export default async function AgencyERPDashboard() {
   const clientsList = await db
     .select()
     .from(clients)
-    .where(eq(clients.organizationId, currentOrgId))
+    .where(eq(clients.organizationId, effectiveOrgId))
     .orderBy(desc(clients.createdAt));
 
   // 3. Ambil semua data quotations yang di-join dengan tabel clients (filter organizationId), urutkan terbaru
@@ -66,7 +67,7 @@ export default async function AgencyERPDashboard() {
     })
     .from(quotations)
     .innerJoin(clients, eq(quotations.clientId, clients.id))
-    .where(eq(quotations.organizationId, currentOrgId))
+    .where(eq(quotations.organizationId, effectiveOrgId))
     .orderBy(desc(quotations.createdAt));
 
   // 4. Ambil semua data projects yang di-join dengan tabel clients (filter organizationId), urutkan terbaru
@@ -77,7 +78,7 @@ export default async function AgencyERPDashboard() {
     })
     .from(projects)
     .innerJoin(clients, eq(projects.clientId, clients.id))
-    .where(eq(projects.organizationId, currentOrgId))
+    .where(eq(projects.organizationId, effectiveOrgId))
     .orderBy(desc(projects.createdAt));
 
   // ==========================================================================
@@ -398,7 +399,7 @@ export default async function AgencyERPDashboard() {
       {/* Footer */}
       <footer className="border-t py-6 text-center text-xs text-muted-foreground bg-muted/20 mt-12">
         <div className="container mx-auto px-4">
-          Agency ERP System &bull; Real-time PostgreSQL Data &bull; Powered by Next.js &amp; Tailwind CSS
+          System ERP for Telucode
         </div>
       </footer>
     </div>
